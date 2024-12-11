@@ -51,27 +51,36 @@ class RobotiqGripper:
         if dev >= self._num_grippers or self._shutdown_driver:
             return False
         try:
+            # Step 1: Copy the bytes inside the lock
             with self._locks[dev]:
-                self.ser.write(self._gripper[dev].act_cmd_bytes)
-                rsp = self.ser.read(8)
-                rsp = [int(x) for x in rsp]
-                if len(rsp) != 8:
-                    return False
-                return verify_modbus_rtu_crc(rsp)
+                act_cmd_bytes = self._gripper[dev].act_cmd_bytes
+
+            # Step 2: Perform serial communication outside the lock
+            self.ser.write(act_cmd_bytes)
+            rsp = self.ser.read(8)
+            rsp = [int(x) for x in rsp]
+            if len(rsp) != 8:
+                return False
+            return verify_modbus_rtu_crc(rsp)
         except:
             return False
 
     def _process_stat_cmd(self, dev=0):
         try:
+            # Step 1: Copy the bytes inside the lock
             with self._locks[dev]:
-                self.ser.write(self._gripper[dev].stat_cmd_bytes)
-                rsp = self.ser.read(21)
-                rsp = [int(x) for x in rsp]
-                if len(rsp) != 21:
-                    return False
-                return self._gripper[dev].parse_rsp(rsp)
+                stat_cmd_bytes = self._gripper[dev].stat_cmd_bytes
+
+            # Step 2: Perform serial communication outside the lock
+            self.ser.write(stat_cmd_bytes)
+            rsp = self.ser.read(21)
+            rsp = [int(x) for x in rsp]
+            if len(rsp) != 21:
+                return False
+            return self._gripper[dev].parse_rsp(rsp)
         except:
             return False
+
 
     def activate_gripper(self, dev=0, block=True):
         if dev >= self._num_grippers:
