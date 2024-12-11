@@ -19,23 +19,27 @@ Here's an example of how to use the driver:
 from robotiq_gripper_python import RobotiqGripper
 import time
 
-# Initialize the gripper (replace with your COM port)
 gripper = RobotiqGripper(comport="/dev/tty.usbserial-DAT27MH")
-
-# Activate the gripper
+gripper.deactivate_gripper()
+time.sleep(0.5)
 gripper.activate_gripper()
+time.sleep(0.5)
 
-# Close the gripper slowly
-gripper.goto(pos=255, vel=0, force=0, block=True)
+# open slowly
+gripper.goto(pos=0, vel=30, force=30)
+time.sleep(3)
 
-# Open the gripper quickly
-gripper.goto(pos=0, vel=255, force=255, block=True)
+# close slowly
+gripper.goto(pos=255, vel=30, force=30)
+time.sleep(2)
 
-# Perform a non-blocking close with incremental positions
+# open slowly
+gripper.goto(pos=0, vel=30, force=30)
+time.sleep(3)
+
 for i in range(255):
-    gripper.goto(pos=i, vel=255, force=255, block=False)
+    gripper.goto(pos=i, vel=255, force=255)
     time.sleep(0.01)
 
-# Shutdown the gripper
 gripper.shutdown()
 ```

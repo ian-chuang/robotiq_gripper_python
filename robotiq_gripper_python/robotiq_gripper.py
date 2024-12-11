@@ -82,14 +82,11 @@ class RobotiqGripper:
             return False
 
 
-    def activate_gripper(self, dev=0, block=True):
+    def activate_gripper(self, dev=0):
         if dev >= self._num_grippers:
             return
         with self._locks[dev]:
             self._gripper[dev].activate_gripper()
-
-        while block and not self.is_ready(dev):
-            time.sleep(self._control_hz)
 
     def deactivate_gripper(self, dev=0):
         if dev >= self._num_grippers:
@@ -109,14 +106,11 @@ class RobotiqGripper:
         with self._locks[dev]:
             self._gripper[dev].deactivate_emergency_release()
 
-    def goto(self, dev=0, pos=0.0, vel=1.0, force=1.0, block=False):
+    def goto(self, dev=0, pos=0.0, vel=1.0, force=1.0):
         if dev >= self._num_grippers:
             return
         with self._locks[dev]:
             self._gripper[dev].goto(pos, vel, force)
-
-        while block and self.is_moving(dev):
-            time.sleep(self._control_hz)
 
     def stop(self, dev=0):
         if dev >= self._num_grippers:
