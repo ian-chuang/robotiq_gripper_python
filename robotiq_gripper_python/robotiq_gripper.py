@@ -82,15 +82,20 @@ class RobotiqGripper:
             return False
         
 
-    def start(self):
+    def start(self, timeout=3.0):
+        self.deactivate_gripper()
+        start_time = time.time()
         while not self.is_reset():
-            self.deactivate_gripper()
             time.sleep(1/self._control_hz)
+            if time.time() - start_time > timeout:
+                raise Exception("Gripper failed to reset. Timeout reached")
 
-        
+        self.activate_gripper()
+        start_time = time.time()
         while not self.is_ready():
-            self.activate_gripper()
             time.sleep(1/self._control_hz)
+            if time.time() - start_time > timeout:
+                raise Exception("Gripper failed to activate. Timeout reached")
 
 
     def move(self, dev=0, pos=255, vel=255, force=255, block=False):
