@@ -2,25 +2,17 @@ from robotiq_gripper_python import RobotiqGripper
 import time
 
 gripper = RobotiqGripper(comport="/dev/tty.usbserial-DAT27MH")
-gripper.deactivate_gripper()
-time.sleep(0.5)
-gripper.activate_gripper()
-time.sleep(0.5)
 
-# open slowly
-gripper.goto(pos=0, vel=30, force=30)
-time.sleep(3)
+gripper.start()
 
-# close slowly
-gripper.goto(pos=255, vel=30, force=30)
-time.sleep(2)
-
-# open slowly
-gripper.goto(pos=0, vel=30, force=30)
-time.sleep(3)
+for i in range(3):
+    # close slowly
+    gripper.move(pos=255, vel=30, force=30, block=True)
+    # open slowly
+    gripper.move(pos=0, vel=30, force=30, block=True)
 
 for i in range(255):
-    gripper.goto(pos=i, vel=255, force=255)
+    gripper.move(pos=i, vel=255, force=255, block=False)
     time.sleep(0.01)
 
 gripper.shutdown()

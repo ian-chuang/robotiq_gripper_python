@@ -80,6 +80,37 @@ class RobotiqGripper:
             return self._gripper[dev].parse_rsp(rsp)
         except:
             return False
+        
+
+    def start(self):
+        while not self.is_reset():
+            self.deactivate_gripper()
+            time.sleep(1/self._control_hz)
+
+        
+        while not self.is_ready():
+            self.activate_gripper()
+            time.sleep(1/self._control_hz)
+
+
+    def move(self, dev=0, pos=255, vel=255, force=255, block=False):
+        if dev >= self._num_grippers:
+            return
+        
+        self.goto(dev, pos, vel, force)
+
+        while block and (self.get_req_pos() != pos or self.is_moving()):
+            time.sleep(1/self._control_hz)
+
+
+
+
+
+
+
+
+
+    # other stuff lol        
 
 
     def activate_gripper(self, dev=0):
