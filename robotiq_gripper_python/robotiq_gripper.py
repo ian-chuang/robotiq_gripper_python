@@ -15,6 +15,7 @@ class RobotiqGripper:
         self._gripper = []
         self._num_grippers = num_grippers
         self._locks = [threading.Lock() for _ in range(self._num_grippers)]
+        self._priority = [False for _ in range(self._num_grippers)]
 
         for i in range(self._num_grippers):
             self._gripper.append(GripperIO(i))
@@ -54,6 +55,7 @@ class RobotiqGripper:
             # Step 1: Copy the bytes inside the lock
             with self._locks[dev]:
                 act_cmd_bytes = self._gripper[dev].act_cmd_bytes
+                self._priority[dev] = False
 
             # Step 2: Perform serial communication outside the lock
             self.ser.write(act_cmd_bytes)
@@ -80,19 +82,18 @@ class RobotiqGripper:
             return self._gripper[dev].parse_rsp(rsp)
         except:
             return False
-        
 
-    def start(self, timeout=3.0):
-        self.deactivate_gripper()
+    def start(self, dev=0, timeout=3.0):
+        self.deactivate_gripper(dev)
         start_time = time.time()
-        while not self.is_reset():
+        while not self.is_reset(dev):
             time.sleep(1/self._control_hz)
             if time.time() - start_time > timeout:
                 raise Exception("Gripper failed to reset. Timeout reached")
 
-        self.activate_gripper()
+        self.activate_gripper(dev)
         start_time = time.time()
-        while not self.is_ready():
+        while not self.is_ready(dev):
             time.sleep(1/self._control_hz)
             if time.time() - start_time > timeout:
                 raise Exception("Gripper failed to activate. Timeout reached")
@@ -104,7 +105,7 @@ class RobotiqGripper:
         
         self.goto(dev, pos, vel, force)
 
-        while block and (self.get_req_pos() != pos or self.is_moving()):
+        while block and (self.get_req_pos(dev) != pos or self.is_moving(dev)):
             time.sleep(1/self._control_hz)
 
 
@@ -124,11 +125,21 @@ class RobotiqGripper:
         with self._locks[dev]:
             self._gripper[dev].activate_gripper()
 
-    def deactivate_gripper(self, dev=0):
+    def deactivate_gripper(self, dev=0, timeout=3.0):
         if dev >= self._num_grippers:
             return
         with self._locks[dev]:
+            self._priority[dev] = True
             self._gripper[dev].deactivate_gripper()
+        
+        start_time = time.time()
+        while True:
+            if time.time() - start_time > timeout:
+                raise Exception("Gripper failed to call deactivate. Timeout reached")
+            with self._locks[dev]:
+                if self._priority[dev] == False:
+                    break
+            time.sleep(1/self._control_hz)
 
     def activate_emergency_release(self, dev=0, open_gripper=True):
         if dev >= self._num_grippers:
