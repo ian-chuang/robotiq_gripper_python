@@ -90,8 +90,8 @@ class GripperIO:
     def activate_gripper(self):
         self.rACT = 1
         self.rPR = 0
-        self.rSP = 255
-        self.rFR = 150
+        self.rSP = 30
+        self.rFR = 30
         self._update_cmd()
 
     def deactivate_gripper(self):
@@ -143,7 +143,8 @@ class GripperIO:
         return self.gSTA == 0 or self.gACT == 0
 
     def is_moving(self):
-        return self.gGTO == 1 and self.gOBJ == 0
+        # return self.gGTO == 1 and self.gOBJ == 0
+        return self.gOBJ == 0
 
     def is_stopped(self):
         return self.gOBJ != 0
