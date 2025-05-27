@@ -134,7 +134,7 @@ class RobotiqGripper:
                     self.activate_gripper(dev)
 
                 time.sleep(1/self._control_hz)
-                self.print_status(dev)
+                # self.print_status(dev)
 
     def activate_gripper(self, dev=0, timeout=3.0):
         assert dev < self._num_grippers, "Invalid device number"
